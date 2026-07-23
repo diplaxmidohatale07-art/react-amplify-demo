@@ -2,7 +2,7 @@ function App() {
   return (
     <div>
       <h1>🚀 Welcome to My First AWS React Project</h1>
-      <h2>Built by Diplaxmi-AWS cloud Engineer second commit</h2>
+      <h2>Built by Diplaxmi - Version 2</h2>
       <p>I am learning React, Git, GitHub, AWS Amplify and CI/CD.</p>
     </div>
   );
