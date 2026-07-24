@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Authenticator } from '@aws-amplify/ui-react';
 
 function App() {
+  const [taskName, setTaskName] = useState("");
 
   const addTask = async () => {
 
@@ -14,7 +16,7 @@ function App() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            Title: "Learn AWS Full Stack",
+            Title: taskName,
             Status: "Pending",
           }),
         }
@@ -23,6 +25,7 @@ function App() {
       const data = await response.json();
 
       alert(data.message);
+      setTaskName("");
 
       console.log(data);
 
@@ -45,6 +48,19 @@ function App() {
           <h2>Hello, {user?.signInDetails?.loginId} 👋</h2>
 
           <p>You have successfully logged in using Amazon Cognito.</p>
+          <label>Task Name</label>
+
+<br />
+
+<input
+  type="text"
+  value={taskName}
+  onChange={(e) => setTaskName(e.target.value)}
+  placeholder="Enter Task Name"
+/>
+
+<br />
+<br />
 
           <button onClick={addTask}>
             Add Task
