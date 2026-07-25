@@ -43,6 +43,7 @@ useEffect(() => {
       const data = await response.json();
 
       alert(data.message);
+      fetchTasks();
       setTaskName("");
 
       console.log(data);
