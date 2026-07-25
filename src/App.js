@@ -1,9 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Authenticator } from '@aws-amplify/ui-react';
 
 function App() {
-  const [taskName, setTaskName] = useState("");
+ const [taskName, setTaskName] = useState("");
+ const [tasks, setTasks] = useState([]);
+const fetchTasks = async () => {
+  try {
+    const response = await fetch(
+      "https://wxhnketpkh.execute-api.ap-south-1.amazonaws.com/Tasks"
+    );
 
+    const data = await response.json();
+
+    setTasks(data);
+    console.log("Tasks received:", data);
+
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+  }
+};
+useEffect(() => {
+  fetchTasks();
+}, []);
   const addTask = async () => {
 
     try {
@@ -67,6 +85,15 @@ function App() {
           </button>
 
           <br /><br />
+          <h2>📋 My Tasks</h2>
+
+<ul>
+  {tasks.map((task) => (
+    <li key={task.TaskId}>
+      {task.Title} - {task.Status}
+    </li>
+  ))}
+</ul>
 
           <button onClick={signOut}>
             Sign Out
