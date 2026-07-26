@@ -126,7 +126,7 @@ function App() {
         >
           <h1>🚀 Welcome to My First AWS React Project</h1>
 
-          <h2>Hello, {user?.signInDetails?.loginId} 👋</h2>
+          <h2>Hello, User 👋</h2>
 
           <p>You have successfully logged in using Amazon Cognito.</p>
 
