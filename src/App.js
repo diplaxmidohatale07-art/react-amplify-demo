@@ -5,18 +5,22 @@ function App() {
   const [taskName, setTaskName] = useState("");
   const [tasks, setTasks] = useState([]);
 
+  const API_URL =
+    "https://wxhnketpkh.execute-api.ap-south-1.amazonaws.com/Tasks";
+
   const fetchTasks = async () => {
     try {
-      const response = await fetch(
-        "https://wxhnketpkh.execute-api.ap-south-1.amazonaws.com/Tasks"
-      );
-
+      const response = await fetch(API_URL);
       const data = await response.json();
 
-      setTasks(data);
-      console.log("Tasks received:", data);
+      if (Array.isArray(data)) {
+        setTasks(data);
+      } else {
+        console.error("Unexpected response:", data);
+        setTasks([]);
+      }
     } catch (error) {
-      console.error("Error fetching tasks:", error);
+      console.error(error);
     }
   };
 
@@ -25,28 +29,29 @@ function App() {
   }, []);
 
   const addTask = async () => {
+    if (!taskName.trim()) {
+      alert("Please enter a task name");
+      return;
+    }
+
     try {
-      const response = await fetch(
-        "https://wxhnketpkh.execute-api.ap-south-1.amazonaws.com/Tasks",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            Title: taskName,
-            Status: "Pending",
-          }),
-        }
-      );
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Title: taskName,
+          Status: "Pending",
+        }),
+      });
 
       const data = await response.json();
 
       alert(data.message);
-      fetchTasks();
-      setTaskName("");
 
-      console.log(data);
+      setTaskName("");
+      fetchTasks();
     } catch (error) {
       console.error(error);
       alert("Failed to add task");
@@ -55,23 +60,21 @@ function App() {
 
   const updateTask = async (taskId) => {
     try {
-      const response = await fetch(
-        "https://wxhnketpkh.execute-api.ap-south-1.amazonaws.com/Tasks",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            TaskId: taskId,
-            Status: "Completed",
-          }),
-        }
-      );
+      const response = await fetch(API_URL, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          TaskId: taskId,
+          Status: "Completed",
+        }),
+      });
 
       const data = await response.json();
 
       alert(data.message);
+
       fetchTasks();
     } catch (error) {
       console.error(error);
@@ -80,23 +83,29 @@ function App() {
   };
 
   const deleteTask = async (taskId) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this task?"
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
     try {
-      const response = await fetch(
-        "https://wxhnketpkh.execute-api.ap-south-1.amazonaws.com/Tasks",
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            TaskId: taskId,
-          }),
-        }
-      );
+      const response = await fetch(API_URL, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          TaskId: taskId,
+        }),
+      });
 
       const data = await response.json();
 
       alert(data.message);
+
       fetchTasks();
     } catch (error) {
       console.error(error);
@@ -107,14 +116,27 @@ function App() {
   return (
     <Authenticator>
       {({ signOut, user }) => (
-        <main style={{ padding: "30px" }}>
+        <main
+          style={{
+            maxWidth: "900px",
+            margin: "0 auto",
+            padding: "40px",
+            fontFamily: "Arial, sans-serif",
+          }}
+        >
           <h1>🚀 Welcome to My First AWS React Project</h1>
 
           <h2>Hello, {user?.signInDetails?.loginId} 👋</h2>
 
           <p>You have successfully logged in using Amazon Cognito.</p>
 
-          <label>Task Name</label>
+          <label
+            style={{
+              fontWeight: "bold",
+            }}
+          >
+            Task Name
+          </label>
 
           <br />
           <br />
@@ -124,41 +146,95 @@ function App() {
             value={taskName}
             onChange={(e) => setTaskName(e.target.value)}
             placeholder="Enter Task Name"
+            style={{
+              width: "320px",
+              padding: "10px",
+              fontSize: "16px",
+            }}
           />
 
           <br />
           <br />
 
-          <button onClick={addTask}>Add Task</button>
+          <button
+            onClick={addTask}
+            disabled={!taskName.trim()}
+            style={{
+              padding: "10px 20px",
+              fontSize: "16px",
+              cursor: "pointer",
+            }}
+          >
+            ➕ Add Task
+          </button>
 
           <br />
           <br />
 
           <h2>📋 My Tasks</h2>
 
-          <ul>
+          <ul style={{ paddingLeft: "20px" }}>
             {tasks.map((task) => (
-              <li key={task.TaskId}>
-                {task.Title} - {task.Status}
-
-                <button
-                  onClick={() => updateTask(task.TaskId)}
-                  style={{ marginLeft: "10px" }}
+              <li
+                key={task.TaskId}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "15px",
+                }}
+              >
+                <span
+                  style={{
+                    minWidth: "340px",
+                    fontWeight: "bold",
+                    color:
+                      task.Status === "Completed"
+                        ? "green"
+                        : "darkorange",
+                  }}
                 >
-                  Complete
-                </button>
+                  {task.Title} - {task.Status}
+                </span>
+
+                {task.Status !== "Completed" && (
+                  <button
+                    onClick={() => updateTask(task.TaskId)}
+                    style={{
+                      padding: "6px 12px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✅ Complete
+                  </button>
+                )}
 
                 <button
                   onClick={() => deleteTask(task.TaskId)}
-                  style={{ marginLeft: "10px", color: "red" }}
+                  style={{
+                    padding: "6px 12px",
+                    color: "red",
+                    cursor: "pointer",
+                  }}
                 >
-                  Delete
+                  🗑 Delete
                 </button>
               </li>
             ))}
           </ul>
 
-          <button onClick={signOut}>Sign Out</button>
+          <br />
+
+          <button
+            onClick={signOut}
+            style={{
+              padding: "10px 20px",
+              fontSize: "16px",
+              cursor: "pointer",
+            }}
+          >
+            🚪 Sign Out
+          </button>
         </main>
       )}
     </Authenticator>
